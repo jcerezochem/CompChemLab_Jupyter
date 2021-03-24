@@ -1,0 +1,16 @@
+# Code to change the sign of the cubefiles (to patch the issues with negative isolevels)
+for cubefile in glob.glob(cube_path+'/*[0-9a-zA-Z].cube'):
+    fin = open(cubefile)
+    fout = open(cubefile.replace('.cube','_.cube'),'w')
+    for i in range(psi4_mol.natom()+6):
+        line = fin.readline()
+        print(line,file=fout,end='')
+    for line in fin:
+        line = ' '+line
+        line = line.replace('  ',' +')
+        line = line.replace(' -','  ')
+        line = line.replace(' +',' -')
+        line = ' '+line.lstrip()
+        print(line,file=fout,end='')
+    fout.close()
+    fin.close()
