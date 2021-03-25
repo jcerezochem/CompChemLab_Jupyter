@@ -1,0 +1,53 @@
+# Adapted from: http://forum.psicode.org/t/printing-of-molecular-orbitals/335/6
+
+#
+# Cartesian AO labels
+#
+ao_labels = []
+for s in range(wfn.basisset().nshell()):
+    shell = wfn.basisset().shell(s)
+    center = str(shell.ncenter+1)
+    # center name
+    center = psi4_mol.to_dict()['elem'][shell.ncenter] + center
+    am = shell.am
+    amchar = shell.amchar
+    basename = '{'+center+'}'+amchar
+    for j in range(0,am+1):
+        lx = am - j
+        for lz in range(0, j + 1):
+            ly  = j - lz
+            ao_labels.append(basename+'x'*lx+'y'*ly+'z'*lz)
+        
+#
+# MO labels
+#
+pg = psi4_mol.point_group()
+ct = pg.char_table()
+irep_symbols = [ ct.gamma(i).symbol() for i in range(pg.order()) ]
+
+mo_labels = []
+U = wfn.Ca().nph
+L = wfn.aotoso().nph
+for irrep in range(wfn.nirrep()):
+    mat = U[irrep].dot(L[irrep].T)
+    dims = mat.shape
+    for mo in range(dims[0]):
+        moterms = ''
+        for ao in range(dims[1]):
+            aofunc = ao_labels[ao]
+            # Use normalized coefficients
+            coefs = mat[mo]/np.linalg.norm(mat[mo])
+            coef = coefs[ao]
+            if(np.abs(coef) > 3E-1):
+                if not moterms:
+                    join = '-' if coef < 0 else ''
+                else:
+                    join = '- ' if coef < 0 else '+ '
+                moterms += " %s%.3f(%s)" % (join, np.abs(coef), aofunc)
+        mo_labels.append(str(mo+1)+'-'+irep_symbols[irrep]+':' + moterms)
+
+#
+# Print AO combilations to MOs
+#
+for mo in mo_labels:
+    print(mo)

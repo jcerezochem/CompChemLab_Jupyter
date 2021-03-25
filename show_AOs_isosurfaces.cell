@@ -1,0 +1,25 @@
+# Settings
+ao = 13
+iso=0.01
+r_grid = 4
+
+# Generate cubes
+psi4.set_options({'CUBEPROP_TASKS':['BASIS_FUNCTIONS'],
+                  'CUBIC_GRID_OVERAGE':[r_grid,r_grid,r_grid],
+                  'CUBEPROP_BASIS_FUNCTIONS':[ao]})
+psi4.driver.p4util.cubeprop(wfn)
+
+# Start view
+ase_mol = ase.io.read('geom.xyz')
+view = nv.show_ase(ase_mol)
+
+# Show AO
+if hasattr(view,'component_1'):
+    view.remove_component(c)
+c = view.add_component('Phi_'+str(ao)+'.cube')
+c.clear()
+c.add_surface(opacity=0.5, wireframe=True, color='blue', isolevelType="value", isolevel=abs(iso))
+c.add_surface(opacity=0.5, wireframe=False, color='red', isolevelType="value", isolevel=-abs(iso))
+
+# Show!
+view
